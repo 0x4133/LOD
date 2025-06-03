@@ -1,3 +1,4 @@
+import argparse
 import cv2
 import json
 import os
@@ -5,6 +6,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
+from joblib import dump
 
 # Function to extract features from an image
 def extract_features(image):
@@ -115,33 +117,32 @@ def detect_objects(model, image):
 
     return image
 
-# Directory containing the annotated images and annotations
-data_dir = "/Users/aaron/PycharmProjects/cv2Bby/data"
+def main():
+    parser = argparse.ArgumentParser(description="Train an SVM model and run live detection")
+    parser.add_argument("--data-dir", default="data", help="Directory with annotated images")
+    parser.add_argument("--model-path", default="svm_model.pkl", help="Path to save the trained model")
+    args = parser.parse_args()
 
-# Train the model
-model = train_model(data_dir)
+    model = train_model(args.data_dir)
+    dump(model, args.model_path)
 
-# Initialize the webcam
-cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(0)
 
-while True:
-    # Read a frame from the webcam
-    ret, frame = cap.read()
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            print("Error: Failed to capture frame from the webcam")
+            break
 
-    if not ret:
-        print("Error: Failed to capture frame from the webcam")
-        break
+        result_frame = detect_objects(model, frame)
+        cv2.imshow("Live Object Detection", result_frame)
 
-    # Perform object detection on the frame
-    result_frame = detect_objects(model, frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-    # Display the result
-    cv2.imshow("Live Object Detection", result_frame)
+    cap.release()
+    cv2.destroyAllWindows()
 
-    # Check for 'q' key to quit the program
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
 
-# Release the webcam and close windows
-cap.release()
-cv2.destroyAllWindows()
+if __name__ == "__main__":
+    main()
