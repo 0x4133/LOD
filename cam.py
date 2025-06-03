@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 import argparse
 import cv2
 from tensorflow.keras.models import load_model
 import numpy as np
 
-def main(model_path):
+def main(model_path: str, camera: int = 0) -> None:
     model = load_model(model_path)
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(camera)
 
     while True:
         ret, frame = cap.read()
@@ -31,6 +33,7 @@ def main(model_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run live classification")
     parser.add_argument("--model-path", default="my_model.h5", help="Path to Keras model")
+    parser.add_argument("--camera", type=int, default=0, help="Camera index")
     args = parser.parse_args()
-    main(args.model_path)
+    main(args.model_path, args.camera)
 

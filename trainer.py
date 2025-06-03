@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.layers import Dense, Input, GlobalAveragePooling2D
@@ -24,7 +26,7 @@ model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy']
 # Prepare data
 train_datagen = ImageDataGenerator(rescale=1./255)  # Add more data augmentation parameters as needed
 
-def train_model(data_dir):
+def train_model(data_dir: str) -> Model:
     train_generator = train_datagen.flow_from_directory(
             data_dir,
             target_size=(224, 224),
@@ -34,7 +36,7 @@ def train_model(data_dir):
     model.fit(train_generator, epochs=10)
     return model
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Train a MobileNetV2 classifier")
     parser.add_argument("--data-dir", default="data", help="Directory with training images")
     parser.add_argument("--output", default="my_model.h5", help="Path to save the model")

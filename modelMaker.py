@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import argparse
+from pathlib import Path
 import cv2
 import json
-import os
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
@@ -9,7 +11,7 @@ from sklearn.metrics import accuracy_score
 from joblib import dump
 
 # Function to extract features from an image
-def extract_features(image):
+def extract_features(image: np.ndarray) -> np.ndarray | None:
     if image is None or image.size == 0:
         print("Error: Empty image passed to extract_features()")
         return None
@@ -23,25 +25,24 @@ def extract_features(image):
     return features
 
 # Function to train the model
-def train_model(data_dir):
+def train_model(data_dir: str) -> SVC:
     # Initialize lists to store features and labels
-    features = []
-    labels = []
+    features: list[np.ndarray] = []
+    labels: list[str] = []
 
     # Iterate over the annotated images and annotations
-    for filename in os.listdir(data_dir):
-        if filename.startswith("annotated_frame_") and filename.endswith(".jpg"):
-            # Load the annotated image
-            image_path = os.path.join(data_dir, filename)
-            image = cv2.imread(image_path)
+    data_path = Path(data_dir)
+    for filename in data_path.iterdir():
+        if filename.name.startswith("annotated_frame_") and filename.suffix == ".jpg":
+            image = cv2.imread(str(filename))
 
             if image is None:
                 print(f"Error: Failed to load image {image_path}")
                 continue
 
             # Load the corresponding annotations
-            annotation_path = os.path.join(data_dir, "annotations_" + filename[16:-4] + ".json")
-            with open(annotation_path, "r") as file:
+            annotation_path = data_path / f"annotations_{filename.name[16:-4]}.json"
+            with annotation_path.open("r") as file:
                 annotations = json.load(file)
 
             # Extract features and labels for each annotated object
@@ -88,7 +89,7 @@ def train_model(data_dir):
     return model
 
 # Function to detect objects in an image using the trained model
-def detect_objects(model, image):
+def detect_objects(model: SVC, image: np.ndarray) -> np.ndarray:
     # Convert the image to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -117,7 +118,7 @@ def detect_objects(model, image):
 
     return image
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Train an SVM model and run live detection")
     parser.add_argument("--data-dir", default="data", help="Directory with annotated images")
     parser.add_argument("--model-path", default="svm_model.pkl", help="Path to save the trained model")

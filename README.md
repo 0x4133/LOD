@@ -11,7 +11,7 @@ LOD is a simple collection of scripts that demonstrate how to create a small obj
 
 ## Requirements
 
-- Python 3.8+
+ - Python 3.12+
 - OpenCV
 - TensorFlow
 - NumPy
